@@ -1,0 +1,70 @@
+#+HUGO_BASE_DIR: .
+#+HUGO_SECTION: posts
+* Branchless Partitioning with Hoare & Lomuto
+  :PROPERTIES:
+  :EXPORT_FILE_NAME: branchless-partitioning
+  :EXPORT_DATE: 2025-07-27
+  :EXPORT_HUGO_DRAFT: true
+  :END:
+
+I had an opportunity to implement the quickselect algorithm recently. It was a good refresher of.
+
+Paritioning is one of the steps
+
+** Naive
+
+One of the naive solutions might to pick a pivot, and iterate through it to construct a `[left]` and `[right]` list.
+Then assign this concatenated list back to the original list variable. Surely there's a better in place solution than:
+
+#+BEGIN_SRC python
+  pivot_value = 5
+  left = []
+  right = []
+  for i in range(arr):
+      if i <= pivot_value:
+          left += [i]
+      else:
+          right += [i]
+  arr = left + right
+#+END_SRC
+
+** Hoare
+
+When quick sorting
+
+
+
+* Kong Request Transformer
+  :PROPERTIES:
+  :EXPORT_FILE_NAME: kong-request-transformer
+  :EXPORT_DATE: 2025-06-30
+  :END:
+
+Usecase: A new service had to return json responses in different key case formats. Some endpoints were returning responses in =kebab-case= while others were returning in the more common =camelCase= format.
+
+We went with a solution where we defaulted to =camelCase= as the default JSON marshaling format in the response. For the =kebab-case= endpoints the idea was to force a =Content-Type= header that would signal the alternate casing. This was logic that was added on our Kong request gateway/load balancer. The service would return the response format accordingly based on that header.
+
+This was what I configured initially:
+
+#+BEGIN_SRC
+Add - For adding the `Content-Type` header when the it is not present in the request
+#+END_SRC
+
+When testing on staging I realised the above was not enough to handle requests when the =Content-Type= was set. I also needed the =Replace= configuration, to cover the case when the caller has already specified the header and we want to overwrite that.
+
+#+BEGIN_SRC
+Replace - For replacing the `Content-Type` header if it is present in the request
+#+END_SRC
+
+**TIL**: I needed both `add` and `replace` specified in the Kong ACL to force a specific `Content-Type`, regardless of whether the header was specified by the caller or not.
+
+Ref: [[https://developer.konghq.com/plugins/request-transformer][Request Transformer Plugin - Kong Docs]]
+
+* My First Post
+  :PROPERTIES:
+  :EXPORT_FILE_NAME: my-first-post
+  :EXPORT_DATE: 2021-07-26
+  :END:
+Post content here.
+
+
