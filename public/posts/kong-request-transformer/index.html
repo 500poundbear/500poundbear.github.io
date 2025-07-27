@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    
+    <title>Kong Request Transformer | My New Hugo Site</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1">
+    <meta name="description" content="Usecase: A new service had to return json responses in different key case formats. Some endpoints were returning responses in kebab-case while others were returning in the more common camelCase format.
+We went with a solution where we defaulted to camelCase as the default JSON marshaling format in the response. For the kebab-case endpoints the idea was to force a Content-Type header that would signal the alternate casing. This was logic that was added on our Kong request gateway/load balancer. The service would return the response format accordingly based on that header.">
+    <meta name="generator" content="Hugo 0.147.4">
+    
+    
+    
+      <meta name="robots" content="noindex, nofollow">
+    
+    <meta name="author" content="Derek">
+    
+
+    
+<link rel="stylesheet" href="/ananke/css/main.min.css" >
+
+
+
+
+    
+
+
+    
+      
+
+    
+
+    
+
+    
+      <link rel="canonical" href="http://localhost:1313/posts/kong-request-transformer/">
+    
+
+    <meta property="og:url" content="http://localhost:1313/posts/kong-request-transformer/">
+  <meta property="og:site_name" content="My New Hugo Site">
+  <meta property="og:title" content="Kong Request Transformer">
+  <meta property="og:description" content="Usecase: A new service had to return json responses in different key case formats. Some endpoints were returning responses in kebab-case while others were returning in the more common camelCase format.
+We went with a solution where we defaulted to camelCase as the default JSON marshaling format in the response. For the kebab-case endpoints the idea was to force a Content-Type header that would signal the alternate casing. This was logic that was added on our Kong request gateway/load balancer. The service would return the response format accordingly based on that header.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-06-30T00:00:00+00:00">
+    <meta property="article:modified_time" content="2025-06-30T00:00:00+00:00">
+
+  <meta itemprop="name" content="Kong Request Transformer">
+  <meta itemprop="description" content="Usecase: A new service had to return json responses in different key case formats. Some endpoints were returning responses in kebab-case while others were returning in the more common camelCase format.
+We went with a solution where we defaulted to camelCase as the default JSON marshaling format in the response. For the kebab-case endpoints the idea was to force a Content-Type header that would signal the alternate casing. This was logic that was added on our Kong request gateway/load balancer. The service would return the response format accordingly based on that header.">
+  <meta itemprop="datePublished" content="2025-06-30T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2025-06-30T00:00:00+00:00">
+  <meta itemprop="wordCount" content="210">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Kong Request Transformer">
+  <meta name="twitter:description" content="Usecase: A new service had to return json responses in different key case formats. Some endpoints were returning responses in kebab-case while others were returning in the more common camelCase format.
+We went with a solution where we defaulted to camelCase as the default JSON marshaling format in the response. For the kebab-case endpoints the idea was to force a Content-Type header that would signal the alternate casing. This was logic that was added on our Kong request gateway/load balancer. The service would return the response format accordingly based on that header.">
+
+	
+  </head><body class="ma0 avenir bg-near-white development">
+
+    
+   
+  
+
+  <header>
+    <div class="bg-black">
+      <nav class="pv3 ph3 ph4-ns" role="navigation">
+  <div class="flex-l center items-center justify-between">
+    <a href="/" class="f3 fw2 hover-white white-90 dib no-underline">
+      
+        My New Hugo Site
+      
+    </a>
+    <div class="flex-l items-center">
+      
+
+      
+      <div class="ananke-socials"></div>
+
+    </div>
+  </div>
+</nav>
+
+    </div>
+  </header>
+
+
+
+    <main class="pb7" role="main">
+      
+  
+  
+  <article class="flex-l mw8 center ph3 flex-wrap justify-between">
+    <header class="mt4 w-100">
+      <aside class="instapaper_ignoref b helvetica tracked ttu">
+          
+        Posts
+      </aside><div id="sharing" class="mt3 ananke-socials"></div>
+<h1 class="f1 athelas mt3 mb1">Kong Request Transformer</h1>
+      
+      <p class="tracked"><strong>Derek</strong>
+      </p>
+      
+      
+      
+      <time class="f6 mv4 dib tracked" datetime="2025-06-30T00:00:00Z">June 30, 2025</time>
+      
+
+      
+      
+    </header>
+    <div class="nested-copy-line-height lh-copy serif f4 nested-links mid-gray pr4-l w-two-thirds-l"><p>Usecase: A new service had to return json responses in different key case formats. Some endpoints were returning responses in <code>kebab-case</code> while others were returning in the more common <code>camelCase</code> format.</p>
+<p>We went with a solution where we defaulted to <code>camelCase</code> as the default JSON marshaling format in the response. For the <code>kebab-case</code> endpoints the idea was to force a <code>Content-Type</code> header that would signal the alternate casing. This was logic that was added on our Kong request gateway/load balancer. The service would return the response format accordingly based on that header.</p>
+<p>This was what I configured initially:</p>
+<pre tabindex="0"><code class="language-nil" data-lang="nil">Add - For adding the `Content-Type` header when the it is not present in the request
+</code></pre><p>When testing on integration I realised the above was not enough to handle requests when the <code>Content-Type</code> was set. I realised that I also needed the <code>Replace</code> configuration, to cover the case when the caller has already specified the header and we want to overwrite that.</p>
+<pre tabindex="0"><code class="language-nil" data-lang="nil">Replace - For replacing the `Content-Type` header if it is present in the request
+</code></pre><p><strong><strong>TIL</strong></strong>: I needed both `add` and `replace` specified in the Kong ACL to force a specific `Content-Type`, regardless of whether the header was specified by the caller or not.</p>
+<p>Ref: <a href="https://developer.konghq.com/plugins/request-transformer">Request Transformer Plugin - Kong Docs</a></p>
+<ul class="pa0">
+  
+</ul>
+<div class="mt6 instapaper_ignoref">
+      
+      
+      </div>
+    </div>
+
+    <aside class="w-30-l mt6-l">
+
+
+
+
+</aside>
+
+  </article>
+
+    </main>
+    <footer class="bg-black bottom-0 w-100 pa3" role="contentinfo">
+  <div class="flex justify-between">
+  <a class="f4 fw4 hover-white white-70 dn dib-ns pv2 ph3 no-underline" href="http://localhost:1313/" >
+    &copy;  My New Hugo Site 2025 
+  </a>
+    <div><div class="ananke-socials"></div>
+</div>
+  </div>
+</footer>
+
+  </body>
+</html>
